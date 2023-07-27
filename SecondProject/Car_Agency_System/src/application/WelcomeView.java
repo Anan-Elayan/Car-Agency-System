@@ -1,0 +1,225 @@
+package application;
+/*
+ * Name :Anan Elayan
+ * ID : 1211529
+ *
+ * */
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Scanner;
+
+
+public class WelcomeView extends Pane {
+
+    private Label lblWelcome;
+    private static File file;
+    public static File orderFile;
+    private Stage stage;
+    private Button btnClient,btnAdmin,btnLoadFileCars,btnLoadFileOrders;
+    private Image img;
+    private ImageView view;
+    Font font = Font.font("Bauhaus 93", FontPosture.REGULAR, 40);
+
+
+    public WelcomeView() {
+
+        lblWelcome = new Label("Welcome to Car Agency System");
+        lblWelcome.setStyle("-fx-text-fill: white");
+        lblWelcome.setFont(font);
+        lblWelcome.setLayoutX(80);
+        lblWelcome.setLayoutY(40);
+
+
+        btnClient = new Button("Client");
+        btnClient.setStyle("-fx-text-fill:  #f2bd12;-fx-background-color: black;-fx-border-color: white;-fx-background-radius: 10 50 10  50 ; -fx-border-radius: 10 50 10 50 ;-fx-font-size: 20");
+        btnClient.setFont(font);
+        btnClient.setPrefWidth(194);
+        btnClient.setPrefHeight(24);
+        btnClient.setLayoutX(250);
+        btnClient.setLayoutY(170);
+
+
+        btnAdmin = new Button("Admin");
+        btnAdmin.setStyle("-fx-text-fill:  #f2bd12;-fx-background-color: black;-fx-border-color: white;-fx-background-radius: 10 50 10  50 ; -fx-border-radius: 10 50 10 50;-fx-font-size: 20 ");
+        btnAdmin.setFont(font);
+        btnAdmin.setPrefWidth(194);
+        btnAdmin.setPrefHeight(24);
+        btnAdmin.setLayoutX(250);
+        btnAdmin.setLayoutY(300);
+
+
+        btnLoadFileCars = new Button("Load file cars");
+        btnLoadFileCars.setStyle("-fx-text-fill:  #f2bd12;-fx-background-color: black;-fx-border-color: white;-fx-background-radius: 10 50 10  50 ; -fx-border-radius: 10 50 10 50;-fx-font-size: 20");
+        btnLoadFileCars.setFont(font);
+        btnLoadFileCars.setPrefWidth(194);
+        btnLoadFileCars.setPrefHeight(24);
+        btnLoadFileCars.setLayoutX(250);
+        btnLoadFileCars.setLayoutY(170);
+
+
+        btnLoadFileOrders = new Button("Load file Orders");
+        btnLoadFileOrders.setStyle("-fx-text-fill:  #f2bd12;-fx-background-color: black;-fx-border-color: white;-fx-background-radius: 10 50 10  50 ; -fx-border-radius: 10 50 10 50;-fx-font-size: 20 ");
+        btnLoadFileOrders.setFont(font);
+        btnLoadFileOrders.setPrefWidth(194);
+        btnLoadFileOrders.setPrefHeight(24);
+        btnLoadFileOrders.setLayoutX(250);
+        btnLoadFileOrders.setLayoutY(300);
+
+        img = new Image("car.jpg");
+        view = new ImageView(img);
+        view.setFitHeight(500);
+        view.setFitWidth(730);
+        view.setOpacity(0.4);
+
+        loadFiles();
+        getActions();
+
+        this.setStyle("-fx-background-color: black");
+        this.getChildren().addAll(view, lblWelcome, btnClient, btnAdmin, btnLoadFileCars, btnLoadFileOrders);
+    }
+
+
+    // ------------------------------------------------------------- METHODS -----------------------------------------------
+
+    public void loadFiles() {
+        btnLoadFileCars.setVisible(true);
+        btnLoadFileOrders.setVisible(true);
+        btnClient.setVisible(false);
+        btnAdmin.setVisible(false);
+
+        btnLoadFileCars.setOnAction(e -> {        // load file cars
+            stage = new Stage();
+            file = new FileChooser().showOpenDialog(stage);
+            Scanner input;
+            NodeDoubleLinkedList newNodeDouble;
+            if (file == null) return;
+            try {
+                input = new Scanner(file);
+                int count = 1;
+                NodeDoubleLinkedList node;
+                NodeSingleList nodeSingle;
+                while (input.hasNextLine()) {
+                    if (count == 1) {//Handle file first line
+                        input.nextLine();
+                        count++;
+                        continue;
+                    }
+                    try {
+                        String line = input.nextLine();
+                        if (line.isEmpty()) continue;//skip empty line
+                        String[] info = line.split(",");
+                        String brand = info[0].trim();
+                        String model = info[1].trim();
+                        int year = Integer.parseInt(info[2].trim());
+                        String color = info[3].trim();
+                        int price = Integer.parseInt(info[4].replace('K', '\0').trim());
+                        node = ClientView.data.search(brand);
+                        nodeSingle = new NodeSingleList(new Car(model, year, color, price));
+                        if (node == null) {//not exit brand
+                            newNodeDouble = new NodeDoubleLinkedList(brand);//create new node in double list (brand)
+                            newNodeDouble.getListCarInfo().addNodeSorted(nodeSingle);//add car to brand
+                            ClientView.data.addNodeSorted(newNodeDouble);// add node brand to double list as sorted
+                        } else {//exit brand
+                            node.getListCarInfo().addNodeSorted(nodeSingle);
+                        }
+                    } catch (Exception ex) {
+                        new Warning("Invalid Record formats in line " + count);
+                    }
+                    count++;
+                }
+                btnLoadFileCars.setVisible(false);
+                btnClient.setVisible(true);
+                btnClient.setDisable(true);
+            } catch (FileNotFoundException ignored) {
+            }
+        });
+
+
+        btnLoadFileOrders.setOnAction(c -> {   //load file orders
+
+            File file = new FileChooser().showOpenDialog(stage);
+            orderFile = file;
+            Scanner input;
+            SimpleDateFormat format = new SimpleDateFormat("d/M/yyyy");
+            if (file == null) return;
+            try {
+                input = new Scanner(file);
+                int lineNumber = 1;
+                while (input.hasNextLine()) {
+                    if (lineNumber == 1) {
+                        input.nextLine();
+                        lineNumber++;
+                        continue;
+                    }
+                    try {
+                        String line = input.nextLine();
+                        if (line.isEmpty()) continue;
+                        String[] data = line.split(",");
+                        String customerName = data[0].trim();
+                        String mobile = data[1].trim();
+                        String brand = data[2].trim();
+                        String model = data[3].trim();
+                        int year = Integer.parseInt(data[4].trim());
+                        String color = data[5].trim();
+                        int price = Integer.parseInt(data[6].replace('K', '\0').trim());
+                        Date orderDate = format.parse(data[7].trim());
+                        String orderStatus = data[8].trim();
+
+                        Client client = new Client(customerName, mobile);
+                        Car car = new Car(model, year, color, price);
+                        Orders orders = new Orders(client, car, orderDate, orderStatus, brand);
+                        NodeDoubleLinkedList node = ClientView.data.search(brand);
+                        if (node == null) {
+                            ClientView.data.addNodeSorted(new NodeDoubleLinkedList(brand));
+                        }
+                        if (orders.getOrderStatus().equals("InProcess")) {
+                            ClientView.queuelist.enQueue(orders);//add to queue
+                        } else {
+                            ClientView.stackList.push(orders);//add to stack
+                        }
+
+                    } catch (Exception exception) {
+                        new Warning("Invalid Record formats in line " + lineNumber);
+                    }
+                    lineNumber++;
+                }
+                btnLoadFileOrders.setVisible(false);
+                btnAdmin.setVisible(true);
+                btnClient.setDisable(false);
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+    }
+
+
+
+    //in this method to show window client and admin
+    public void getActions() {
+        btnClient.setOnAction(e -> {
+            new ClientView();
+        });
+
+        btnAdmin.setOnAction(e -> {
+            new AdminView();
+        });
+    }
+
+
+
+
+
+}

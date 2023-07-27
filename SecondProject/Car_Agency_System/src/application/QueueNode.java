@@ -1,0 +1,40 @@
+package application;
+/*
+ * Name :Anan Elayan
+ * ID : 1211529
+ *
+ * */
+public class QueueNode {
+	
+    private Orders orders;
+    private QueueNode next;
+
+
+    public QueueNode(Orders orders) {
+        this.orders = orders;
+    }
+
+    public Orders getOrders() {
+        return orders;
+    }
+
+    public void setOrders(Orders orders) {
+        this.orders = orders;
+    }
+
+    public QueueNode getNext() {
+        return next;
+    }
+
+    public void setNext(QueueNode next) {
+        this.next = next;
+    }
+
+    @Override
+    public String toString() {
+        return "QueueNode{" +
+                "orders=" + orders +
+                ", next=" + next +
+                '}';
+    }
+}
